@@ -1,0 +1,554 @@
+'Funciones
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+
+Function encontrar_ultimo(sitio As String) As String
+ruta = ActiveWorkbook.Path & "\" & sitio & "\"
+Dim MiPc, Carpeta, Archivos, Archivo, ÚltimoModificado As Date
+Application.ScreenUpdating = False
+'ActiveSheet.Cells.Clear
+Set MiPc = CreateObject("Scripting.FileSystemObject")
+Set Carpeta = MiPc.GetFolder(ruta)
+Set Archivos = Carpeta.Files
+For Each Archivo In Archivos
+   If Not Archivo.Name = ThisWorkbook.Name Then
+      If InStrRev(Archivo.Name, ".") > 0 Then
+         If Mid(Archivo.Name, InStrRev(Archivo.Name, ".")) = ".dbf" Then
+            If Archivo.DateLastModified > ÚltimoModificado Then
+               Fichero = Archivo.Name
+               ÚltimoModificado = Archivo.DateLastModified
+            End If
+         End If
+      End If
+   End If
+Next
+'MsgBox Fichero & " " & ÚltimoModificado
+largo = Len(Fichero)
+encontrar_ultimo = Left(Fichero, largo - 4)
+End Function
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'generacion de un archivo lista de los archivos a comprimir
+
+Function lista_poly(sitio As String, polyline As String, cobertura As String) As String
+ruta = ActiveWorkbook.Path & "\" & sitio & "\"
+'Inicializo strings
+Dim DBF As String
+Dim PRJ As String
+Dim SHP As String
+Dim SHX As String
+Dim Cob As String
+DBF = sitio & "\" & polyline & ".dbf"
+PRJ = sitio & "\" & polyline & ".prj"
+SHP = sitio & "\" & polyline & ".shp"
+SHX = sitio & "\" & polyline & ".shx"
+TEX = sitio & "\" & cobertura & ".txt"
+f = FreeFile
+Open ruta & "lista_" & sitio & ".lst" For Output As #f
+Write #f, DBF
+Write #f, PRJ
+Write #f, SHP
+Write #f, SHX
+Write #f, TEX
+Close f
+lista_poly = "lista_" & sitio & ".lst"
+End Function
+
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Function numerofilas() As Integer
+'se obtiene cantidad de filas de region escogida
+'entrega nro filas -1 ya que no considera 'nombres de columna' (fila 1)
+Range("A1").Select
+Dim var As Boolean
+Dim cantidad As Integer
+Dim celda As String
+cantidad = 0
+celda = Range("A1").Value
+var = True
+While var
+    If celda = "" Then
+    var = False
+    Else
+    cantidad = cantidad + 1
+    celda = Range("A" & cantidad + 1).Value
+    End If
+Wend
+
+numerofilas = cantidad - 1
+
+End Function
+
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Function testDir(ruta As String) As Boolean
+     'Escrito por David Pineda
+    testDir = False
+     
+    If Dir(ruta, vbDirectory) = "" Then
+    testDir = False
+    Else
+    testDir = True
+    End If
+     
+     ' jiuk - somecode
+    Exit Function
+     
+End Function
+
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'Entrega el nombre de la carpeta raíz en que se ubica un archivo
+'es necesario entregar la ruta del archivo.
+'busca el último \ dentro del string, luego corta 
+'el string a partir de ese punto.
+
+Function carpeta_raiz(ruta As String) As String
+Dim signo As String
+Dim pos As Integer
+Dim largo As Integer
+largo = Len(ruta)
+signo = "\"
+
+For i = 1 To largo
+    If Mid(ruta, i, 1) = signo Then
+        pos = i
+    End If
+Next i
+
+carpeta_raiz = Right(ruta, largo - pos)
+End Function
+
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+
+
+'Macros
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Sub Orden_alfabetico()
+'
+' Orden_alfabetico Macro
+' Ordenar alfabeticamente según columna ID Sitio ("A")
+'
+    Dim hoja As String
+    Dim columna As String
+    hoja = "Asignados"
+    Sheets("Hoja1").Select
+    Sheets("Hoja1").Name = hoja
+    columna = "A1"
+    Rows("1:1").Select
+    Selection.AutoFilter
+    ActiveWorkbook.Worksheets(hoja).AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets(hoja).AutoFilter.Sort.SortFields.Add Key:=Range( _
+        columna), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+        xlSortNormal
+    With ActiveWorkbook.Worksheets(hoja).AutoFilter.Sort
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+End Sub
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Sub renombra_hoja_a_resueltos()
+Dim Resueltos As String
+Resueltos = "Resueltos"
+    Sheets(2).Select
+    Sheets(2).Name = Resueltos
+End Sub
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Sub crearcarpetas_sitios()
+    ActiveWorkbook.Activate
+    Sheets("Asignados").Select
+    nf = Range("A1").End(xlDown).Row
+    Path = ActiveWorkbook.Path & "\"
+    For i = 2 To nf
+    'si no existe carpeta crear
+    ruta = Path & Range("A" & i).Value
+    If testDir(Path & Range("A" & i).Value) = False Then
+    MkDir (ruta)
+    ruta = ""
+    End If
+    'si existe carpeta
+    Next i
+End Sub
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Sub columnas_hoja_resueltos()
+'Se asigna nombre de columna
+Range("A1").FormulaR1C1 = "ID Sitio"
+Range("b1").FormulaR1C1 = "Altura [m]"
+Range("c1").FormulaR1C1 = "Azimuth [°,°,°]"
+Range("d1").FormulaR1C1 = "Tilt Mec [°,°,°]"
+Range("e1").FormulaR1C1 = "Tilt Elect [°,°,°]"
+Range("f1").FormulaR1C1 = "Ing Encargado"
+Range("g1").FormulaR1C1 = "Corte -[dbm]"
+Range("h1").FormulaR1C1 = "Rmincb [km]"
+'se ajusta tamaño de columnas
+Columns("A:H").Select
+Selection.ColumnWidth = 14
+End Sub
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+Sub copiar_datos_AtoR()
+'
+' copydata Macro
+'
+'
+    'selección de hoja asignados
+    Dim hoja As String
+    hoja = "Asignados"
+    Sheets(hoja).Select
+    Worksheets(hoja).Activate
+    nf = numerofilas()
+    hoja = "Resueltos"
+    Worksheets(hoja).Activate
+    'Copiar nombres de sitio mediante fórmula!!! (Ojo, no copiar string)
+    Range("A2").Select
+    ActiveCell.FormulaR1C1 = "=+Asignados!RC"
+    ActiveCell.Select
+    Selection.AutoFill Destination:=ActiveCell.Range("A1:A" & nf), Type:= _
+        xlFillDefault
+    ActiveCell.Range("A1:A" & nf).Select
+    ActiveCell.Offset(0, 1).Range("A1").Select
+    
+    'Copiar valores de las alturas
+    Range("B2").Select
+    ActiveCell.FormulaR1C1 = "=+Asignados!RC[11]"
+    ActiveCell.Select
+    Selection.AutoFill Destination:=ActiveCell.Range("A1:A" & nf), Type:= _
+        xlFillDefault
+    ActiveCell.Range("A1:A" & nf).Select
+    ActiveCell.Offset(0, 4).Range("A1").Select
+    
+    'Copiar nombres de Ingeniero encargado
+    ActiveCell.FormulaR1C1 = "=+Asignados!RC[8]"
+    ActiveCell.Select
+    Selection.AutoFill Destination:=ActiveCell.Range("A1:A" & nf), Type:= _
+        xlFillDefault
+    ActiveCell.Range("A1:A" & nf).Select
+
+
+End Sub
+
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'creación de planilla en que se ordenan los datos para importar a mentum planet
+
+Sub crear_import_planet()
+'
+' crear_import_planet Macro
+' Crea nuevo libro para importar datos de sitio en planet, asigna nombre a libro y hojas
+'
+
+'
+    Dim sitio As String
+    Dim longitud As String
+    Dim latitud As String
+    Dim altura As String
+    Dim Nro As Integer
+    
+    
+    Path = ActiveWorkbook.Path & "\"
+    nf = numerofilas()
+    
+'identificar libro de partida y libro import
+    Dim partida As String
+    Dim import_planet As String
+    
+    partida = ActiveWorkbook.Name
+    
+    Workbooks.Add
+    
+    ' guardarlibro Macro
+'
+
+'
+
+    
+    import_planet = ActiveWorkbook.Name
+    
+
+'creación y llenado de datos
+
+    Sheets(1).Select
+    Sheets(1).Name = "Groups"
+    Sheets(2).Select
+    Sheets(2).Name = "Sites"
+    Sheets(3).Select
+    Sheets(3).Name = "Antennas"
+    'añade a posteriori una hoja adicional
+    Sheets.Add After:=Sheets(Sheets.Count)
+    'puede ser extraer nombra de hoja creada o última hoja (también)
+    Sheets(4).Name = "Sectors"
+    
+    'Se nombran las columnas correspondientes a cada hoja que reconoce Mentum Planet
+    'hoja de grupos:
+    Sheets("Groups").Select
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Name"
+    Range("B1").Select
+    ActiveCell.FormulaR1C1 = "Type"
+    'Copiar nombre de grupo, desde hoja sector, nombre de columna grupo
+    'Asignar type: Local
+    Fecha = Format(DateTime.Now, "dd_MM_yyyy")
+    Range("A2").Select
+    ActiveCell.FormulaR1C1 = "grupo_" & Fecha
+    Range("B2").Select
+    ActiveCell.FormulaR1C1 = "Local"
+    
+    'se procede a llenar la hoja sites
+    'Se definen las columnas de hoja "sites"
+    Sheets("Sites").Select
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Site ID"
+    Range("B1").Select
+    ActiveCell.FormulaR1C1 = "Longitude"
+    Range("C1").Select
+    ActiveCell.FormulaR1C1 = "Latitude"
+
+
+    'Se definen las columnas de hoja "Antennas"
+    Sheets("Antennas").Select
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Site ID"
+    Range("B1").Select
+    ActiveCell.FormulaR1C1 = "Antenna ID"
+    Range("C1").Select
+    ActiveCell.FormulaR1C1 = "Longitude"
+    Range("D1").Select
+    ActiveCell.FormulaR1C1 = "Latitude"
+    Range("E1").Select
+    ActiveCell.FormulaR1C1 = "Height (m)"
+    Range("F1").Select
+    ActiveCell.FormulaR1C1 = "Azimuth"
+    Range("G1").Select
+    ActiveCell.FormulaR1C1 = "Mechanical Tilt"
+    
+
+    
+    'Se definen las columna en hoja "Sectors" en donde se debe crear una columna del nuevo grupo
+    'el nuevo grupo tendría el siguiente formato: dia(enpalabras)_fecha
+    Sheets("Sectors").Select
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Site ID"
+    Range("B1").Select
+    ActiveCell.FormulaR1C1 = "BTS Name"
+    Range("C1").Select
+    ActiveCell.FormulaR1C1 = "Sector ID"
+    Range("D1").Select
+    ActiveCell.FormulaR1C1 = "Group: grupo_" & Fecha
+    
+        
+      'se completan los datos de sites, antennas y sectors
+    'nf al entregar la cantidad de sitios y aca se ocupa como lugar de fila, se debe añadir la fila
+    'de nombres de columna
+
+    For i = 2 To nf + 1
+    'activar libro de partida
+   Workbooks(partida).Activate
+        Sheets("Asignados").Select
+        sitio = Range("A" & i).Value
+        longitud = Range("K" & i).Value
+        latitud = Range("L" & i).Value
+        altura = Range("M" & i).Value
+        BTS = Range("Q" & i).Value
+       'activar planilla import de planet
+    Workbooks(import_planet).Activate
+        Sheets("Sites").Select
+    Range("A" & i).Select
+    ActiveCell.FormulaR1C1 = sitio
+    Range("B" & i).Select
+    ActiveCell.FormulaR1C1 = longitud
+    Range("C" & i).Select
+    ActiveCell.FormulaR1C1 = latitud
+        
+    Sheets("Antennas").Select
+
+        For j = 1 To 3
+            Nro = 3 * i - 4 + j - 1
+           'Columna site id
+            
+            Range("A" & Nro).Select
+            ActiveCell.FormulaR1C1 = sitio
+            
+            'COlumna Antenna ID
+            Range("B" & Nro).Select
+            ActiveCell.FormulaR1C1 = j
+    
+            'Columna Longitud
+            Range("C" & Nro).Select
+            ActiveCell.FormulaR1C1 = longitud
+            
+            'Columna Latitude
+            Range("D" & Nro).Select
+            ActiveCell.FormulaR1C1 = latitud
+            
+            'Columna altura
+            Range("E" & Nro).Select
+            ActiveCell.FormulaR1C1 = altura
+            
+            'Columna Azimuth
+            Range("F" & Nro).Select
+            ActiveCell.FormulaR1C1 = 120 * (j - 1)
+            
+            'Columna Tilt mecánico
+            Range("G" & Nro).Select
+            ActiveCell.FormulaR1C1 = 2
+        
+        Next j
+        
+    Sheets("Sectors").Select
+    
+    
+            For j = 1 To 3
+            Nro = 3 * i - 4 + j - 1
+           'Columna site id
+            
+            Range("A" & Nro).Select
+            ActiveCell.FormulaR1C1 = sitio
+
+            'COlumna BTS ID
+            Range("B" & Nro).Select
+            ActiveCell.FormulaR1C1 = BTS
+            
+            'Columna site id
+            
+            Range("C" & Nro).Select
+            ActiveCell.FormulaR1C1 = j
+        
+            
+            'Columna Grupo
+            Range("D" & Nro).Select
+            ActiveCell.FormulaR1C1 = "=+T(" & """TRUE""" & ")"
+        
+        Next j
+
+    Next i
+    Workbooks(import_planet).Activate
+    ActiveWorkbook.SaveAs Filename:= _
+        Path & "import_planet.xlsx", FileFormat:= _
+        xlOpenXMLWorkbook, CreateBackup:=False
+    ActiveWorkbook.Save
+
+
+End Sub
+
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+
+Sub datos_a_planet()
+'Necesario que hoja1 tenga nombre 'Asignados' o haber ejecutado 'ordenalfabetico'
+crearcarpetas_sitios
+renombra_hoja_a_resueltos
+columnas_hoja_resueltos
+copiar_datos_AtoR
+crear_import_planet
+End Sub
+
+
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+
+Sub entrega_cobertura()
+hoja = "Resueltos"
+Worksheets(hoja).Activate
+nf = numerofilas()
+
+Range("I1").Select
+ActiveCell.FormulaR1C1 = "Ruta"
+Range("J1").Select
+ActiveCell.FormulaR1C1 = "Cobertura TXT"
+ruta = ActiveWorkbook.Path & "\"
+For i = 2 To nf+1
+If Range("H" & i).Value = "" Then
+Else
+cobertura = "Cobertura " & Range("A" & i).Value & " R= " & Range("H" & i).Value & " km"
+Range("I" & i).Select
+ActiveCell.FormulaR1C1 = ruta & Range("A" & i).Value & "\"
+Range("J" & i).Select
+ActiveCell.FormulaR1C1 = cobertura
+f = FreeFile
+Open ruta & Range("A" & i).Value & "\" & cobertura & ".txt" For Output As #f
+Close f
+End If
+Next i
+End Sub
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+'rutina para comprimir archivos polyline y cobertura en rar
+
+Sub comprime_polyline()
+
+Dim sitio As String
+Dim polyline_version As String
+Dim comando_rar As String
+Dim listapoly As String
+Dim cobertura As String
+Dim ruta As String
+
+
+'winrar a -afrar -ibck -m3 NOMBRE *.dbf *.prj *shp *.shx *.txt
+nf = numerofilas()
+'obtiene la ruta donde está trabajando la planilla (Importante!!!)
+ruta = ActiveWorkbook.Path
+
+carpeta = carpeta_raiz(ruta)
+
+'setear path de ejecucion línea de comando:
+'set_path = "set path= ruta"
+'Shell Environ$("comspec") & " /c  " & set_path, vbHide
+'Shell Environ$("comspec") & " /k  " & set_pat, vbNormalFocus
+'comienza bucle que lee los datos de cada sitio y entrega el archivo comprimido
+'con las polyline y cobertura
+For i = 2 To nf + 1
+'A es al columna de nombres de sitios o siteID
+sitio = Range("A" & i).Value
+'verificar que exista carpeta
+If testDir(ruta & "\" & sitio) = True Then
+polyline_version = encontrar_ultimo(Range("A" & i).Value)
+cobertura = Range("J" & i).Value
+listapoly = lista_poly(sitio, polyline_version, cobertura)
+'J es la columna que entrega un string con el nombre de sitio y radio cobertura
+comando_rar = "rar a -r -ep1 " & sitio & " @" & sitio & "\" & listapoly
+MsgBox carpeta
+'Cambiar a disco F:
+'winrar a -afrar -ibck -m3 NOMBRE *.dbf *.prj *shp *.shx *.txt
+'EL comando que permite comprimir desde terminal CMD, visible:
+'Shell Environ$("comspec") & " /k  " & "f: &" & comando_rar, vbNormalFocus
+'Cuando se tiene todo funcionando bien se pasa a una ejecucion invisible del comando:
+Shell Environ$("comspec") & " /c  " & "f: & " & "cd ..\" & carpeta & "& @" & comando_rar, vbHide
+Else
+Stop
+End If
+Next i
+End Sub
+
+'(((((((((((((((((((°°°°°°°°°°°°°°°°°°°°°°°°°°°)))))))))))))))))))
+'((((((((((((((((((((((%%%%%%%%%%%%%%%%%%%%%))))))))))))))))))))))
+'(((((((((((((((((((((((([[[[[0000]]]]]]))))))))))))))))))))))))))
+
+'macro que ejecuta en conjunto la generacion de cobertura y comprime polyline
+Sub procesa_cobertura()
+    entrega_cobertura
+    comprime_polyline
+End Sub
