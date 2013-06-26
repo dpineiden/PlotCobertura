@@ -1,0 +1,46 @@
+Las macros excel (v2010) adjuntas en carpeta, programadas bajo MS Visual Basic, permiten 
+trabajar con los datos de sitios 3G y GSM para entregar un archivo import con formato
+que lee Mentum Planet (V5.5), a partir de acá se debe realizar el diseño manualmente
+de cada cobertura (obtener azimuth, tilt mecánico, tilt eléctrico, etc).
+Una vez que se concluye la configuración de cada sitio es necesario tomar los datos de configuración7y 
+radio de cobertura y completar la hoja llamada 'Resueltos', cada dato según corresponda. Además
+se debe exportar a formato shape (los polyline) cada poligono obtenido de la cobertura de los sitios.
+A continuación se procesan estos datos para crear el txt y comprimir los archivos necesarios
+para entregar a subtel.
+
+En resumen, se realiza lo siguiente:
+1° Validar los datos. nombres de sitios (3G con U adelante), longitud, latitud, altura
+2° Orden_alfabetico()
+3° Renombra_hoja_a_resueltos
+4° columnas_hoja_resueltos
+5° copiar_datos_AtoR
+6° crearcarpetas_sitios()
+7° crear_import_planet()
+3° a 7° datos_a_planet()
+8° importar excel a planet con datos de sitios validados.
+9° Realizar plots de cobertura, tener en cuenta grupo
+10° Llenar datos en 'Resueltos' azimuth, tilt, radio cobertura
+11° entrega_cobertura()
+12° comprime_polyline()
+11 y 12°  procesa_cobertura()
+
+Se adjunta diagrama ilustrativo de los pasos descritos (archivo pdf)
+Se adjunta carpeta con excel de ejemplo: 'Patron'
+
+Para la ejecución de las macros adjuntas es necesario copiarlas en un nuevo
+módulo en Visual Basic, en conjunto con las funciones extra.
+
+Respecto a la estructura de carpetas
+
+NombreCarpeta(fecha u otro nombre)\
+  tarea.xlsx
+	import_planet.xlsx
+	sitio.rar
+	\sitio1
+		x.tab
+		x.dbf x.shp x.shx etc
+		cobertura x.txt
+	\sitio2
+		y.tab
+		y.dbf y.shp y.shx etc
+		cobertura y.txt
